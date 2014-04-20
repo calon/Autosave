@@ -21,9 +21,12 @@ from datetime import datetime
 path = vim.eval("s:auto_save_path")
 suffix = vim.eval("s:auto_save_suffix")
 cbuffer = vim.current.buffer                            # Get current buffer object.
+cwindow = vim.current.window
+print cwindow
+print len(cbuffer)
 lines = cbuffer[0:len(cbuffer)]                         # Get current buffer's content.
 
-if lines == [""]:                                       # Check empty buffer.
+if lines == [""] and len(cbuffer) == 1:                                       # Check empty buffer.
     name = datetime.now().strftime("%Y%m%d%H%M%S%f")    # Get current time stamp.
     full_path_name = path + "/" + name + suffix         # Combined into full path and file name.
     vim.command("silent edit %s" % (full_path_name))    # Edit this file.
