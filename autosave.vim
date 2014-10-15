@@ -1,38 +1,37 @@
-if !has('python')
-    echo "Error: Require Vim compiled with +python."
-    finish
+function! Quick_save()
+
+" You can customize path here
+let g:quick_save_path = expand($VIM . '/' . "backup" . '/')
+
+" Check buffer type, do not save special buffer
+if &buftype == ''
+    if bufname("%") == ''
+        let s:save_path = g:quick_save_path
+
+        " Check whether the path exists, create directory when it doesn't exist.
+        if !isdirectory(s:save_path)
+            silent! call mkdir(s:save_path, "p")
+        endif
+
+        " Set path and suffix for quick save file.
+        let s:save_suffix = ".txt"
+        let s:file_name = strftime("%Y%m%d%H%M%S")
+        let s:full_path = join([s:save_path, s:file_name, s:save_suffix], '')
+        execute "write" s:full_path
+    elseif g:auto_save_option == 0
+        execute "update"
+    endif
 endif
-
-" Set path and suffix for auto save file.
-let s:auto_save_path = expand($VIM . '/' . "backup")
-let s:auto_save_suffix = ".txt"
-
-" Check whether the path exists, create the directory when it doesn't exist.
-if !isdirectory(s:auto_save_path)
-    silent! call mkdir(s:auto_save_path, "p")
-endif
-
-function! Autosave(path, suffix)
-
-python << monty
-import vim
-from datetime import datetime
-
-path = vim.eval("s:auto_save_path")
-suffix = vim.eval("s:auto_save_suffix")
-cbuffer = vim.current.buffer                            # Get current buffer object.
-lines = cbuffer[0:len(cbuffer)]                         # Get current buffer's content.
-
-if lines == [""] and len(cbuffer) == 1:                 # Check empty buffer.
-    name = datetime.now().strftime("%Y%m%d%H%M%S%f")    # Get current time stamp.
-    full_path_name = path + "/" + name + suffix         # Combined into full path and file name.
-    vim.command("silent edit %s" % (full_path_name))    # Edit this file.
-    vim.command("silent write")                         # And write to disk.
-
-monty
 
 endfunction
 
-if has("autocmd") && len(expand('%:t')) == 0
-    autocmd BufEnter * call Autosave(s:auto_save_path, s:auto_save_suffix)
+" Set auto save option, if want to save file manually, you can change it to 0
+let g:auto_save_option = 1
+
+" Auto save when enter buffer
+if has("autocmd") && g:auto_save_option == 1
+    autocmd BufEnter * call Quick_save()
 endif
+
+" Define shortcut to quick save
+nnoremap <silent> <leader>s :call Quick_save()<CR>
